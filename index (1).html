@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ใบส่งของคอนกรีต</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #f0a500;
+    --accent2: #e85d04;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; background: var(--bg); }
+  body { color: var(--text); font-family: 'Sarabun', sans-serif; padding: 20px 14px 60px; max-width: 600px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 22px; padding-top: 8px; }
+  .header h1 { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+  .header p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 14px; }
+
+  /* Upload */
+  #fileInput { display: none; }
+  .upload-zone {
+    display: block;
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    -webkit-tap-highlight-color: rgba(240,165,0,0.1);
+  }
+  .upload-zone:active { border-color: var(--accent); background: rgba(240,165,0,0.04); }
+  .upload-zone.has-img { padding: 8px; border-color: var(--success); border-style: solid; }
+  .upload-zone .icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-zone .ztitle { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .upload-zone .zsub { font-size: 12px; color: var(--muted); }
+
+  #prevImg {
+    display: none;
+    width: 100%;
+    height: auto;
+    max-height: 260px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #000;
+  }
+
+  /* Buttons */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; margin-top: 10px; padding: 12px;
+    border: none; border-radius: 9px;
+    font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+    -webkit-appearance: none;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.38; pointer-events: none; }
+  .btn-ai   { background: var(--accent); color: #000; }
+  .btn-sec  { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-save { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); color: #000; font-size: 16px; padding: 14px; }
+
+  /* Status */
+  .status { display: none; align-items: center; gap: 9px; margin-top: 10px; padding: 10px 13px; border-radius: 8px; border-left: 3px solid; font-size: 13px; background: var(--surface2); line-height: 1.5; }
+  .status.show { display: flex; }
+  .status.ok  { border-color: var(--success); }
+  .status.err { border-color: var(--danger); }
+  .status.ing { border-color: var(--info); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--info); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+
+  /* Form fields */
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 13px; }
+  .field:last-child { margin-bottom: 0; }
+  .field > label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.4; }
+  .num { color: var(--accent); font-size: 10px; margin-right: 3px; font-weight: 700; }
+  .field input, .field textarea {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 11px 12px; color: var(--text); font-family: 'Sarabun', sans-serif;
+    font-size: 16px; width: 100%; outline: none; -webkit-appearance: none; appearance: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .field input.ok { border-color: rgba(34,197,94,0.6); background: rgba(34,197,94,0.06); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏗️ ใบส่งของคอนกรีต</h1>
+  <p>อัปโหลดรูป → AI อ่าน → บันทึกลง Google Sheet</p>
+</div>
+
+<!-- Upload Section -->
+<div class="card">
+  <div class="card-title">📷 อัปโหลดใบส่งของ</div>
+
+  <input type="file" id="fileInput" accept="image/*">
+
+  <label for="fileInput" class="upload-zone" id="uploadZone">
+    <div id="zonePlaceholder">
+      <div class="icon">📄</div>
+      <div class="ztitle">แตะเพื่อเลือกรูปภาพ</div>
+      <div class="zsub">JPG, PNG — จากแกลเลอรี่หรือกล้อง</div>
+    </div>
+    <img id="prevImg" alt="ตัวอย่างรูปภาพ">
+  </label>
+
+  <button class="btn btn-ai" id="aiBtn" disabled onclick="runAI()">✨ อ่านด้วย AI อัตโนมัติ</button>
+  <button class="btn btn-sec" onclick="clearImg()">🗑️ ล้างรูป</button>
+  <div class="status" id="aiSt"><div class="spin" id="aiSpin" style="display:none"></div><span id="aiMsg"></span></div>
+</div>
+
+<!-- Form Section -->
+<div class="card">
+  <div class="card-title">📋 ข้อมูลใบส่งของ</div>
+
+  <div class="field">
+    <label><span class="num">(1)</span>ชื่อโรงงาน / ผู้จัดจำหน่าย / เครื่องหมายการค้า</label>
+    <input type="text" id="f1" placeholder="เช่น บริษัท คอนกรีตไทย จำกัด" autocomplete="off">
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label><span class="num">(2)</span>ลำดับใบส่งของ</label>
+      <input type="text" id="f2" placeholder="00001" autocomplete="off">
+    </div>
+    <div class="field">
+      <label><span class="num">(3)</span>เลขที่รถ</label>
+      <input type="text" id="f3" placeholder="กข-1234" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label><span class="num">(4)</span>ชื่อผู้ซื้อ</label>
+    <input type="text" id="f4" placeholder="ชื่อลูกค้า / ผู้รับ" autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label><span class="num">(5)</span>ชื่อและสถานที่งาน</label>
+    <input type="text" id="f5" placeholder="สถานที่ก่อสร้าง / โครงการ" autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label><span class="num">(6)</span>ประเภทและชั้นคุณภาพของคอนกรีต</label>
+    <input type="text" id="f6" placeholder="เช่น คอนกรีต C25/30" autocomplete="off">
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label><span class="num">(7)</span>ปริมาณ (ลบ.ม.)</label>
+      <input type="number" id="f7" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+    </div>
+    <div class="field">
+      <label><span class="num">(9)</span>ค่ายุบตัว (ซม.)</label>
+      <input type="number" id="f9" placeholder="10" step="0.5" inputmode="decimal">
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label><span class="num">(8)</span>เวลาเริ่มผสม</label>
+      <input type="time" id="f8a">
+    </div>
+    <div class="field">
+      <label><span class="num">(8)</span>เวลาถ่ายหมด</label>
+      <input type="text" id="f8b" placeholder="เช่น 45 นาที" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label><span class="num">(10)</span>ขนาดโตสุดของมวลรวม (มม.)</label>
+    <input type="number" id="f10" placeholder="20" inputmode="numeric">
+  </div>
+
+  <div class="field">
+    <label><span class="num">(11)</span>ชนิดและปริมาณสารผสมเพิ่ม</label>
+    <textarea id="f11" placeholder="ระบุชนิด และปริมาณสารผสมเพิ่ม (ถ้ามี)"></textarea>
+  </div>
+</div>
+
+<button class="btn btn-sec" style="margin-bottom:10px;" onclick="clearForm()">🔄 ล้างฟอร์มทั้งหมด</button>
+<button class="btn btn-save" id="saveBtn" onclick="saveToSheet()">📊 บันทึกลง Google Sheet</button>
+<div class="status" id="saveSt" style="margin-top:12px;"><div class="spin" id="saveSpin" style="display:none"></div><span id="saveMsg"></span></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbOeo1cPOj8gJdfOr-zV9TxPhYe87G4oHjspVlvQu_wgNZ_8X_YvK4P8z4SEcwAfXkMg/exec';
+const FIELDS = ['f1','f2','f3','f4','f5','f6','f7','f8a','f8b','f9','f10','f11'];
+let b64 = null, mime = 'image/jpeg', objUrl = null;
+
+// --- Image upload ---
+document.getElementById('fileInput').addEventListener('change', function() {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  mime = file.type || 'image/jpeg';
+
+  // revoke old object URL
+  if (objUrl) URL.revokeObjectURL(objUrl);
+  objUrl = URL.createObjectURL(file);
+
+  const img = document.getElementById('prevImg');
+  img.onload = function() {
+    img.style.display = 'block';
+    document.getElementById('zonePlaceholder').style.display = 'none';
+    document.getElementById('uploadZone').classList.add('has-img');
+    document.getElementById('aiBtn').disabled = false;
+  };
+  img.onerror = function() {
+    alert('ไม่สามารถโหลดรูปได้ กรุณาลองใหม่');
+  };
+  img.src = objUrl;
+
+  // read base64 for API
+  const fr = new FileReader();
+  fr.onload = function(e) { b64 = e.target.result.split(',')[1]; };
+  fr.readAsDataURL(file);
+});
+
+function clearImg() {
+  b64 = null;
+  if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = null; }
+  const img = document.getElementById('prevImg');
+  img.src = ''; img.style.display = 'none';
+  document.getElementById('zonePlaceholder').style.display = 'block';
+  document.getElementById('uploadZone').classList.remove('has-img');
+  document.getElementById('fileInput').value = '';
+  document.getElementById('aiBtn').disabled = true;
+  setStatus('aiSt', 'aiSpin', 'aiMsg', '', 'hide');
+}
+
+// --- Status helper ---
+function setStatus(bid, sid, mid, msg, type) {
+  const bar = document.getElementById(bid);
+  document.getElementById(mid).textContent = msg;
+  if (type === 'hide') { bar.className = 'status'; return; }
+  bar.className = 'status show ' + type;
+  document.getElementById(sid).style.display = type === 'ing' ? 'block' : 'none';
+}
+
+// --- AI read ---
+async function runAI() {
+  if (!b64) { alert('รูปยังโหลดไม่เสร็จ กรุณารอแล้วลองใหม่'); return; }
+  document.getElementById('aiBtn').disabled = true;
+  setStatus('aiSt', 'aiSpin', 'aiMsg', 'กำลังวิเคราะห์ใบส่งของ...', 'ing');
+
+  const prompt = `อ่านใบส่งของคอนกรีตจากภาพนี้ ตอบเป็น JSON เท่านั้น ห้ามมี markdown หรือคำอธิบาย:
+{"f1":"ชื่อโรงงาน/ผู้จัดจำหน่าย/เครื่องหมายการค้า","f2":"ลำดับที่ใบส่งของ","f3":"เลขที่รถ","f4":"ชื่อผู้ซื้อ","f5":"ชื่อและสถานที่งาน","f6":"ประเภทและชั้นคุณภาพคอนกรีต","f7":"ปริมาณคอนกรีต","f8a":"เวลาเริ่มผสม HH:MM","f8b":"ระยะเวลาถ่ายคอนกรีตหมด","f9":"ค่าการยุบตัว","f10":"ขนาดโตสุดมวลรวม","f11":"ชนิดและปริมาณสารผสมเพิ่ม"}
+หาไม่พบให้ใส่ ""`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-request-origin': 'https://kornnarong.github.io' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.map(i => i.text || '').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    let filled = 0;
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && parsed[id]) { el.value = parsed[id]; el.classList.add('ok'); filled++; }
+    });
+    setStatus('aiSt', 'aiSpin', 'aiMsg', '✅ อ่านสำเร็จ กรอกได้ ' + filled + '/12 ช่อง', 'ok');
+  } catch(err) {
+    setStatus('aiSt', 'aiSpin', 'aiMsg', '❌ เกิดข้อผิดพลาด กรุณาลองใหม่', 'err');
+  } finally {
+    document.getElementById('aiBtn').disabled = false;
+  }
+}
+
+// --- Save to Sheet ---
+async function saveToSheet() {
+  if (!document.getElementById('f1').value) { alert('กรุณากรอกชื่อโรงงาน (ช่อง 1) ก่อนบันทึก'); return; }
+  document.getElementById('saveBtn').disabled = true;
+  setStatus('saveSt', 'saveSpin', 'saveMsg', 'กำลังบันทึกลง Google Sheet...', 'ing');
+  const payload = {};
+  FIELDS.forEach(id => payload[id] = document.getElementById(id).value);
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    setStatus('saveSt', 'saveSpin', 'saveMsg', '✅ บันทึกลง Google Sheet สำเร็จ!', 'ok');
+    setTimeout(() => {
+      if (confirm('บันทึกสำเร็จ!\nต้องการล้างฟอร์มเพื่อกรอกใหม่?')) {
+        clearForm(); clearImg();
+        setStatus('saveSt', 'saveSpin', 'saveMsg', '', 'hide');
+      }
+    }, 700);
+  } catch(err) {
+    setStatus('saveSt', 'saveSpin', 'saveMsg', '❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'err');
+  } finally {
+    document.getElementById('saveBtn').disabled = false;
+  }
+}
+
+function clearForm() {
+  FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('ok'); }
+  });
+}
+</script>
+</body>
+</html>
